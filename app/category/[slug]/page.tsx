@@ -2,12 +2,17 @@ import { client } from '@/sanity/lib/client';
 import { notFound } from 'next/navigation';
 import Image from 'next/image';
 
-export async function generateStaticParams() {
-  const categories = await client.fetch(`*[_type == "category"]{slug}`);
-  return categories.map((cat: any) => ({ slug: cat.slug.current }));
+interface CategoryType {
+  slug: {
+    current: string;
+  };
 }
 
-// ✅ Yahan pe ProductType define kar diya
+export async function generateStaticParams() {
+  const categories: CategoryType[] = await client.fetch(`*[_type == "category"]{slug}`);
+  return categories.map((cat) => ({ slug: cat.slug.current }));
+}
+
 interface ProductType {
   _id: string;
   name: string;
@@ -24,13 +29,13 @@ async function getProductsByCategory(slug: string) {
     "imageUrl": image.asset->url, 
     slug
   }`;
-  const products = await client.fetch(query, { slug });
+  const products: ProductType[] = await client.fetch(query, { slug });
 
   return products;
 }
 
 export default async function CategoryPage({ params }: { params: { slug: string } }) {
-  const products: ProductType[] = await getProductsByCategory(params.slug);
+  const products = await getProductsByCategory(params.slug);
 
   if (!products.length) return notFound();
 
