@@ -1,6 +1,6 @@
 'use client';
 import Image from "next/image";
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import { useSelector, useDispatch } from 'react-redux';
 import { RootState } from "../redux/store";
 import { removeFromCart, incrementQuantity, decrementQuantity } from '../redux/cartSlice';
@@ -12,21 +12,19 @@ const Shopping = () => {
     const [shippingOption, setShippingOption] = useState<string>("Standard Delivery");
     const [discountCode, setDiscountCode] = useState<string>("");
 
-    // Shipping Cost
-    const shippingCost = shippingOption === "Express Delivery" ? 10.00 : 5.00;
+    // Memoized shipping cost
+    const shippingCost = useMemo(() => shippingOption === "Express Delivery" ? 10.00 : 5.00, [shippingOption]);
 
-    // Subtotal Calculation
-    const subtotal = cart.items.reduce((total, item) => total + item.price * item.quantity, 0);
+    // Memoized subtotal calculation
+    const subtotal = useMemo(() => cart.items.reduce((total, item) => total + item.price * item.quantity, 0), [cart.items]);
 
-    // Handle discount code (for demonstration, it's just a simple logic here)
-    const applyDiscount = (code: string) => {
-        if (code === "DISCOUNT10") {
-            return 10; // Assuming 10% discount
-        }
-        return 0;
-    };
-    const discountAmount = applyDiscount(discountCode);
-    const totalAmount = (subtotal + shippingCost - discountAmount).toFixed(2);
+    // Memoized discount amount
+    const applyDiscount = useMemo(() => {
+        return discountCode === "DISCOUNT10" ? 10 : 0;
+    }, [discountCode]);
+
+    // Memoized total amount
+    const totalAmount = useMemo(() => (subtotal + shippingCost - applyDiscount).toFixed(2), [subtotal, shippingCost, applyDiscount]);
 
     return (
         <section className="py-16 bg-gray-100">
